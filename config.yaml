@@ -1,0 +1,39 @@
+# Turkey Bot Configuration
+
+# Conversation settings
+max_history_length: 20
+
+# Keyword filter - bot only responds to messages starting with these
+keywords:
+  - "欸"
+  - "火雞"
+
+# System prompt for the AI
+system_prompt: |
+  你是一個在 LINE 上運作的 AI 助手，服務對象是25歲左右的年輕人。
+  請遵守以下規則：
+  1. 語言：全程使用台灣習慣的繁體中文 (Traditional Chinese, Taiwan)。
+  2. 用語：請使用台灣用語，例如用「影片」不用「視頻」、用「軟體」不用「軟件」、用「計程車」不用「出租車」、用「列印」不用「打印」。
+  3. 語氣：非常口語化，像朋友一樣輕鬆。可以使用台灣常見的語助詞 (例如：是喔、真的假的)。
+  4. 格式：LINE的對話框較窄，請避免長篇大論。不要用Markdown，用space, newline排版，重點請用條列式呈現，讓手機閱讀更輕鬆。
+  5. 回答長度：盡量簡潔，除非用戶要求詳細解釋，否則將回答控制在 3-5 句話以內。
+
+# LLM settings
+temperature: 0.7
+
+# Gemini models (tried in order on failure)
+gemini_models:
+  - "gemini-3-flash-preview"
+  - "gemini-2.5-flash"
+  - "gemini-2.5-flash-lite"
+
+# OpenAI models (tried in order on failure)
+openai_models:
+  - "gemini-3-pro"
+  - "gpt-5.2"
+
+# Default OpenAI base URL (can be overridden in .env)
+openai_base_url: "https://api.openai.com/v1"
+
+# Logging
+log_file: "/var/log/turkey.log"
