@@ -10,7 +10,7 @@ A LINE chatbot powered by LLM APIs (Google Gemini or OpenAI-compatible).
 - **Keyword Activation**: Only responds to messages starting with configured keywords
 - **Taiwan-Localized**: Responds in casual Traditional Chinese (Taiwan)
 
-<img width="750" height="1176" alt="Screenshot 2026-01-24 221339" src="https://github.com/user-attachments/assets/58cfb746-feee-4002-8bd6-1817a958466b" />
+<img width="750" height="1176" alt="Screenshot 2026-01-24 221339" src="https://github.com/user-attachments/assets/86a43c81-98a5-46df-899b-e2fc2668a758" />
 
 ## Project Structure
 
@@ -28,6 +28,7 @@ turkey_v2/
 ├── requirements.txt       # Python dependencies
 ├── run.py                 # Entry point
 └── README.md
+
 ```
 
 ## Setup
