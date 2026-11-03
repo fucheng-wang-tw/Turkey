@@ -62,7 +62,6 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                     ),
                     tools=[
                         types.Tool(url_context=types.UrlContext()),
-                        types.Tool(google_search=types.GoogleSearch()),
                     ],
                 )
             )
