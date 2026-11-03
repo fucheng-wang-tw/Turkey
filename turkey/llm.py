@@ -12,12 +12,15 @@ from .config import settings
 from .tools import (
     calculate,
     get_exchange_rate,
+    make_web_search,
     random_pick,
     roll_dice,
-    web_search,
 )
 
 logger = logging.getLogger(__name__)
+
+# Max real web searches per message (extra calls get a 'limit reached' reply)
+WEB_SEARCH_MAX_CALLS = 1
 
 WEEKDAYS_ZH = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
 
@@ -90,7 +93,7 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                         roll_dice,
                         calculate,
                         get_exchange_rate,
-                        *([web_search] if settings.TAVILY_API_KEY else []),
+                        *([make_web_search(WEB_SEARCH_MAX_CALLS)] if settings.TAVILY_API_KEY else []),
                     ],
                     # Required to mix built-in tools (url_context) with function calling
                     tool_config=types.ToolConfig(
