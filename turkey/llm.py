@@ -56,7 +56,14 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                 contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=settings.SYSTEM_PROMPT,
-                    temperature=settings.TEMPERATURE
+                    temperature=settings.TEMPERATURE,
+                    thinking_config=types.ThinkingConfig(
+                        thinking_level=types.ThinkingLevel.HIGH
+                    ),
+                    tools=[
+                        types.Tool(url_context=types.UrlContext()),
+                        types.Tool(google_search=types.GoogleSearch()),
+                    ],
                 )
             )
 
