@@ -38,6 +38,7 @@ class Settings:
     # Gemini configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODELS: List[str] = _config.get("gemini_models", ["gemini-2.5-flash-lite"])
+    GEMINI_THINKING_LEVEL: str = str(_config.get("gemini_thinking_level", "low")).upper()
 
     # OpenAI configuration
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
@@ -73,6 +74,13 @@ class Settings:
 
         if cls.API_FORMAT == "openai" and not cls.OPENAI_API_KEY:
             logging.error("OPENAI_API_KEY must be set when using OpenAI format.")
+            sys.exit(1)
+
+        if cls.GEMINI_THINKING_LEVEL not in ("MINIMAL", "LOW", "MEDIUM", "HIGH"):
+            logging.error(
+                f"Unknown gemini_thinking_level '{cls.GEMINI_THINKING_LEVEL.lower()}'. "
+                "Must be one of: minimal, low, medium, high."
+            )
             sys.exit(1)
 
         if cls.API_FORMAT not in ("gemini", "openai"):

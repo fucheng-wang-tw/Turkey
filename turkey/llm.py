@@ -66,7 +66,7 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                     system_instruction=settings.SYSTEM_PROMPT,
                     temperature=settings.TEMPERATURE,
                     thinking_config=types.ThinkingConfig(
-                        thinking_level=types.ThinkingLevel.HIGH
+                        thinking_level=types.ThinkingLevel(settings.GEMINI_THINKING_LEVEL)
                     ),
                     tools=[
                         types.Tool(url_context=types.UrlContext()),
