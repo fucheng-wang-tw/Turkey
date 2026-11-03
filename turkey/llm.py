@@ -1,6 +1,7 @@
 """LLM client implementations for Gemini and OpenAI APIs."""
 
 import logging
+from datetime import datetime
 from typing import Deque
 
 from google import genai
@@ -10,7 +11,6 @@ from openai import OpenAI
 from .config import settings
 from .tools import (
     calculate,
-    get_current_datetime,
     get_exchange_rate,
     random_pick,
     roll_dice,
@@ -18,6 +18,20 @@ from .tools import (
 )
 
 logger = logging.getLogger(__name__)
+
+WEEKDAYS_ZH = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+
+def build_system_prompt() -> str:
+    """System prompt with the host's current time appended.
+
+    The time goes at the end so the static prefix stays cacheable.
+    """
+    now = datetime.now().astimezone()
+    return (
+        f"{settings.SYSTEM_PROMPT.rstrip()}\n\n"
+        f"現在時間：{now.strftime('%Y-%m-%d %H:%M')} {WEEKDAYS_ZH[now.weekday()]}（{now.tzname()}, UTC{now.strftime('%z')}）"
+    )
 
 # Initialize clients based on API format
 gemini_client = None
@@ -55,6 +69,8 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
         )
     )
 
+    system_prompt = build_system_prompt()
+
     last_error = None
     for model in settings.GEMINI_MODELS:
         try:
@@ -63,14 +79,13 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                 model=model,
                 contents=contents,
                 config=types.GenerateContentConfig(
-                    system_instruction=settings.SYSTEM_PROMPT,
+                    system_instruction=system_prompt,
                     temperature=settings.TEMPERATURE,
                     thinking_config=types.ThinkingConfig(
                         thinking_level=types.ThinkingLevel(settings.GEMINI_THINKING_LEVEL)
                     ),
                     tools=[
                         types.Tool(url_context=types.UrlContext()),
-                        get_current_datetime,
                         random_pick,
                         roll_dice,
                         calculate,

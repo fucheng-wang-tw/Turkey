@@ -4,7 +4,6 @@ import ast
 import logging
 import operator
 import random
-from datetime import datetime
 
 import httpx
 
@@ -14,31 +13,6 @@ logger = logging.getLogger(__name__)
 
 TAVILY_SEARCH_URL = "https://api.tavily.com/search"
 EXCHANGE_RATE_URL = "https://open.er-api.com/v6/latest/TWD"
-
-WEEKDAYS_ZH = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
-
-
-def get_current_datetime() -> dict:
-    """Get the current date and time from the server clock.
-
-    Your own sense of the current date is unreliable. Call this whenever the
-    answer depends on today's date, the current time, the day of the week, or
-    how long until/since some date (e.g. "today", "tomorrow", "this weekend",
-    "how many days until ...").
-
-    Returns:
-        The current local date, time, weekday and timezone.
-    """
-    now = datetime.now().astimezone()
-    logger.info(f"get_current_datetime called: {now.isoformat()}")
-    return {
-        "datetime": now.isoformat(timespec="seconds"),
-        "date": now.strftime("%Y-%m-%d"),
-        "time": now.strftime("%H:%M"),
-        "weekday": WEEKDAYS_ZH[now.weekday()],
-        "timezone": now.tzname(),
-    }
-
 
 def web_search(query: str) -> dict:
     """Search the web for real-time or recent information.

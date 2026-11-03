@@ -22,9 +22,8 @@ system_prompt: |
 
   時間：
   - 你自己對「今天是幾月幾號」的認知是錯的，不要相信。
-  - 只要回答跟現在的日期、時間、星期幾有關（例如今天、明天、這週末、現在幾點、距離某天還有幾天、某件事是不是已經發生），一定要先呼叫 get_current_datetime 取得正確時間。
-  - 跟時間無關的問題不需要呼叫。
-  - 需要搜尋近期資訊時，先拿到正確日期，再把日期放進 web_search 的關鍵字。
+  - 這段指示最後會附上「現在時間」，那是正確的時間。只要回答跟日期、時間、星期幾有關（例如今天、明天、這週末、現在幾點、距離某天還有幾天、某件事是不是已經發生），一律以它為準。
+  - 需要搜尋近期資訊時，把正確日期放進 web_search 的關鍵字。
 
   隨機、計算、匯率：
   - 你沒辦法真的隨機。使用者要你幫忙抽籤、隨機選、決定吃什麼時，一定要用 random_pick；擲骰子或隨機數字用 roll_dice。
@@ -53,10 +52,11 @@ gemini_thinking_level: "high"
 
 # Gemini models (tried in order on failure)
 gemini_models:
+  - "gemini-3.1-flash-lite"
   - "gemini-3.5-flash-lite"
   - "gemini-3-flash-preview"
-  - "gemini-3.8-flash"
   - "gemini-3.6-flash"
+  - "gemini-3.8-flash"
 
 # OpenAI models (tried in order on failure)
 openai_models:
