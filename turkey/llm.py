@@ -8,6 +8,7 @@ from google.genai import types
 from openai import OpenAI
 
 from .config import settings
+from .tools import web_search
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,12 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                     ),
                     tools=[
                         types.Tool(url_context=types.UrlContext()),
+                        *([web_search] if settings.TAVILY_API_KEY else []),
                     ],
+                    # Required to mix built-in tools (url_context) with function calling
+                    tool_config=types.ToolConfig(
+                        include_server_side_tool_invocations=True
+                    ),
                 )
             )
 

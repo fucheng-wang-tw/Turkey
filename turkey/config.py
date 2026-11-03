@@ -47,6 +47,9 @@ class Settings:
     )
     OPENAI_MODELS: List[str] = _config.get("openai_models", ["gpt-4o-mini"])
 
+    # Tavily web search (optional; enables the web_search tool for Gemini)
+    TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
+
     # Application settings (from config.yaml)
     SYSTEM_PROMPT: str = _config.get("system_prompt", "You are a helpful assistant.")
     MAX_HISTORY_LENGTH: int = _config.get("max_history_length", 20)

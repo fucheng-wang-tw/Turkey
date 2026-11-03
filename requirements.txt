@@ -3,5 +3,5 @@ uvicorn
 python-dotenv
 pyyaml
 line-bot-sdk
-google-genai
+google-genai>=2.34.0
 openai
