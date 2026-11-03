@@ -1,6 +1,10 @@
 """Custom function-calling tools for the LLM."""
 
+import ast
 import logging
+import operator
+import random
+from datetime import datetime
 
 import httpx
 
@@ -9,6 +13,31 @@ from .config import settings
 logger = logging.getLogger(__name__)
 
 TAVILY_SEARCH_URL = "https://api.tavily.com/search"
+EXCHANGE_RATE_URL = "https://open.er-api.com/v6/latest/TWD"
+
+WEEKDAYS_ZH = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
+
+def get_current_datetime() -> dict:
+    """Get the current date and time from the server clock.
+
+    Your own sense of the current date is unreliable. Call this whenever the
+    answer depends on today's date, the current time, the day of the week, or
+    how long until/since some date (e.g. "today", "tomorrow", "this weekend",
+    "how many days until ...").
+
+    Returns:
+        The current local date, time, weekday and timezone.
+    """
+    now = datetime.now().astimezone()
+    logger.info(f"get_current_datetime called: {now.isoformat()}")
+    return {
+        "datetime": now.isoformat(timespec="seconds"),
+        "date": now.strftime("%Y-%m-%d"),
+        "time": now.strftime("%H:%M"),
+        "weekday": WEEKDAYS_ZH[now.weekday()],
+        "timezone": now.tzname(),
+    }
 
 
 def web_search(query: str) -> dict:
@@ -51,3 +80,128 @@ def web_search(query: str) -> dict:
     except Exception as e:
         logger.warning(f"web_search failed: {e}")
         return {"error": "Search is temporarily unavailable. Answer from your own knowledge and tell the user you couldn't look it up."}
+
+
+def random_pick(options: list[str], count: int = 1) -> dict:
+    """Randomly pick from a list of options (e.g. what to eat, who goes first, drawing lots).
+
+    You cannot produce real randomness yourself, so always use this tool when
+    the user asks you to randomly choose, draw lots, or decide for them among
+    given options.
+
+    Args:
+        options: The options to choose from.
+        count: How many distinct options to pick. Defaults to 1.
+
+    Returns:
+        The picked option(s).
+    """
+    logger.info(f"random_pick called: {options}, count={count}")
+    if not options:
+        return {"error": "No options given."}
+    count = max(1, min(count, len(options)))
+    return {"picked": random.sample(options, count)}
+
+
+def roll_dice(sides: int = 6, count: int = 1) -> dict:
+    """Roll dice or generate random numbers (e.g. "roll a die", "pick a number from 1 to 100").
+
+    Args:
+        sides: Number of sides per die, i.e. results range from 1 to sides. Defaults to 6.
+        count: Number of dice to roll. Defaults to 1.
+
+    Returns:
+        Each roll and the total.
+    """
+    logger.info(f"roll_dice called: sides={sides}, count={count}")
+    sides = max(2, min(sides, 1_000_000))
+    count = max(1, min(count, 100))
+    rolls = [random.randint(1, sides) for _ in range(count)]
+    return {"rolls": rolls, "total": sum(rolls)}
+
+
+_CALC_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
+
+
+def _eval_node(node):
+    if isinstance(node, ast.Expression):
+        return _eval_node(node.body)
+    if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+        return node.value
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _CALC_OPERATORS:
+        return _CALC_OPERATORS[type(node.op)](_eval_node(node.operand))
+    if isinstance(node, ast.BinOp) and type(node.op) in _CALC_OPERATORS:
+        left, right = _eval_node(node.left), _eval_node(node.right)
+        if isinstance(node.op, ast.Pow) and abs(right) > 100:
+            raise ValueError("Exponent too large")
+        return _CALC_OPERATORS[type(node.op)](left, right)
+    raise ValueError("Unsupported expression")
+
+
+def calculate(expression: str) -> dict:
+    """Evaluate an arithmetic expression exactly (e.g. splitting a bill, discounts, percentages, unit math).
+
+    Use this instead of doing arithmetic in your head whenever the answer
+    involves non-trivial numbers. Supports + - * / // % ** and parentheses.
+    Write percentages as decimals (e.g. 15% -> 0.15).
+
+    Args:
+        expression: The arithmetic expression, e.g. "(1280 + 450) * 1.1 / 4".
+
+    Returns:
+        The numeric result.
+    """
+    logger.info(f"calculate called: {expression}")
+    try:
+        result = _eval_node(ast.parse(expression, mode="eval"))
+        if isinstance(result, float):
+            result = round(result, 10)
+        return {"expression": expression, "result": result}
+    except ZeroDivisionError:
+        return {"error": "Division by zero."}
+    except Exception as e:
+        return {"error": f"Could not evaluate expression: {e}"}
+
+
+def get_exchange_rate(currency: str) -> dict:
+    """Get today's exchange rate between a foreign currency and New Taiwan Dollar (TWD).
+
+    Use this for any exchange-rate question instead of web_search. These are
+    daily mid-market reference rates, not a bank's buy/sell (cash or spot)
+    rates; tell the user that actual bank rates will differ slightly.
+
+    Args:
+        currency: ISO 4217 code of the foreign currency, e.g. USD, JPY, KRW, EUR.
+
+    Returns:
+        How much TWD one unit of the currency is worth, and the update time.
+    """
+    logger.info(f"get_exchange_rate called: {currency}")
+    code = currency.strip().upper()
+    try:
+        response = httpx.get(EXCHANGE_RATE_URL, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        rate = data.get("rates", {}).get(code)
+        if not rate:
+            return {"error": f"Unknown currency code: {code}"}
+        return {
+            "currency": code,
+            "twd_per_unit": round(1 / rate, 4),
+            "units_per_twd": rate,
+            "updated_at": data.get("time_last_update_utc"),
+            "source": "ExchangeRate-API (mid-market reference rate)",
+        }
+    except Exception as e:
+        logger.warning(f"get_exchange_rate failed: {e}")
+        return {"error": "Exchange rate service is temporarily unavailable."}

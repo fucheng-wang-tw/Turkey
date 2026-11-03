@@ -8,7 +8,14 @@ from google.genai import types
 from openai import OpenAI
 
 from .config import settings
-from .tools import web_search
+from .tools import (
+    calculate,
+    get_current_datetime,
+    get_exchange_rate,
+    random_pick,
+    roll_dice,
+    web_search,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +70,11 @@ async def generate_response_gemini(history_queue: Deque[dict], user_text: str) -
                     ),
                     tools=[
                         types.Tool(url_context=types.UrlContext()),
+                        get_current_datetime,
+                        random_pick,
+                        roll_dice,
+                        calculate,
+                        get_exchange_rate,
                         *([web_search] if settings.TAVILY_API_KEY else []),
                     ],
                     # Required to mix built-in tools (url_context) with function calling
