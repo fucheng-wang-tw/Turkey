@@ -55,6 +55,10 @@ class Settings:
     SYSTEM_PROMPT: str = _config.get("system_prompt", "You are a helpful assistant.")
     MAX_HISTORY_LENGTH: int = _config.get("max_history_length", 20)
     KEYWORDS: List[str] = _config.get("keywords", ["欸", "火雞"])
+    ERROR_MESSAGE: str = _config.get(
+        "error_message",
+        "Sorry, I'm having trouble thinking right now. Please try again later."
+    )
     TEMPERATURE: float = _config.get("temperature", 0.7)
 
     # Logging

@@ -8,6 +8,9 @@ keywords:
   - "欸"
   - "火雞"
 
+# Reply sent when every LLM model fails
+error_message: "Sorry, I'm having trouble thinking right now. Please try again later."
+
 # System prompt for the AI
 system_prompt: |
   你是一個在 LINE 聊天機器人上運作的 AI 助手，服務對象是25歲左右的年輕人。

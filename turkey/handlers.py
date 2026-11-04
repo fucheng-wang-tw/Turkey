@@ -1,6 +1,7 @@
 """LINE message event handlers."""
 
 import logging
+import time
 from collections import deque, defaultdict
 from typing import Dict, Deque
 
@@ -50,6 +51,8 @@ async def handle_message_event(event: MessageEvent, line_bot_api: AsyncMessaging
             logger.info(f"Message from {conversation_id} does not start with keywords: {user_text}")
             return
 
+        start_time = time.perf_counter()
+
         # Remove the keyword prefix from the message
         for keyword in settings.KEYWORDS:
             if user_text.startswith(keyword):
@@ -78,7 +81,7 @@ async def handle_message_event(event: MessageEvent, line_bot_api: AsyncMessaging
 
         except Exception as e:
             logger.error(f"LLM Error: {e}", exc_info=True)
-            reply_text = "Sorry, I'm having trouble thinking right now. Please try again later."
+            reply_text = settings.ERROR_MESSAGE
 
         # Reply to LINE
         await line_bot_api.reply_message(
@@ -86,6 +89,10 @@ async def handle_message_event(event: MessageEvent, line_bot_api: AsyncMessaging
                 reply_token=event.reply_token,
                 messages=[TextMessage(text=reply_text)]
             )
+        )
+        logger.info(
+            f"Replied to {conversation_id} in {time.perf_counter() - start_time:.2f}s "
+            "(keyword match -> LINE reply API)"
         )
 
     except Exception as e:
