@@ -97,7 +97,7 @@ def random_pick(options: list[str], count: int = 1) -> dict:
     logger.info(f"random_pick called: {options}, count={count}")
     if not options:
         return {"error": "No options given."}
-    count = max(1, min(count, len(options)))
+    count = max(1, min(int(count), len(options)))
     return {"picked": random.sample(options, count)}
 
 
@@ -112,8 +112,8 @@ def roll_dice(sides: int = 6, count: int = 1) -> dict:
         Each roll and the total.
     """
     logger.info(f"roll_dice called: sides={sides}, count={count}")
-    sides = max(2, min(sides, 1_000_000))
-    count = max(1, min(count, 100))
+    sides = max(2, min(int(sides), 1_000_000))
+    count = max(1, min(int(count), 100))
     rolls = [random.randint(1, sides) for _ in range(count)]
     return {"rolls": rolls, "total": sum(rolls)}
 
